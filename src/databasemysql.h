@@ -17,6 +17,8 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#if defined(__MYSQL__) || defined(__ALLDB__)
+
 #ifndef DATABASEMYSQL_H
 #define DATABASEMYSQL_H
 
@@ -61,4 +63,7 @@ protected:
 	std::map<std::string, size_t> listNames;
 	friend class DatabaseMYsql;
 };
-#endif // DATABASEMYSQL_H
+
+#endif
+
+#endif

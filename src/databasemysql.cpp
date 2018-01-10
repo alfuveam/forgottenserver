@@ -16,8 +16,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
+
 #include "otpch.h"
+
+#if defined(__MYSQL__) || defined(__ALLDB__)
+
 #include "databasemysql.h"
 #include <boost/bind.hpp>
 
@@ -171,7 +174,6 @@ int64_t MySQLDBResult::getNumberAny(std::string const & s) const
 		data = 0;
 	}
 	return data;
-	//return boost::any();
 }
 
 std::string MySQLDBResult::getString(const std::string & s) const
@@ -237,3 +239,5 @@ MySQLDBResult::~MySQLDBResult()
 {
 	mysql_free_result(handle);
 }
+
+#endif

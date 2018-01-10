@@ -16,8 +16,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
+
 #include "otpch.h"
+
+#if defined(__PGSQL__) || defined(__ALLDB__)
+
 #include "databasepgsql.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/bind.hpp>
@@ -227,3 +230,5 @@ int64_t PgSQLDBResult::getNumberAny(std::string const & s) const
 			return 0;
 		}
 }
+
+#endif

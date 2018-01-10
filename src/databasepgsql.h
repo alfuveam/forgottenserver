@@ -17,6 +17,8 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#if defined(__PGSQL__) || defined(__ALLDB__)
+
 #ifndef DATABASEPGSQL_H
 #define DATABASEPGSQL_H
 
@@ -62,4 +64,6 @@ protected:
 	friend class DatabasePgSQL;
 };
 
-#endif // DATABASEPGSQL_H
+#endif
+
+#endif

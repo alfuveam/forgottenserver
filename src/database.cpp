@@ -18,53 +18,43 @@
  */
 
 #include "otpch.h"
-#include "databasemysql.h"
-#include "databasepgsql.h"
 #include "database.h"
+
+#if defined(__MYSQL__) || defined(__ALLDB__)
+	#include "databasemysql.h"
+#endif
+#if defined(__PGSQL__) || defined(__ALLDB__)
+	#include "databasepgsql.h"
+#endif
+
+#if !defined(__ALLDB__)
+	#if !defined(__MYSQL__) && !defined(__PGSQL__)
+		#error You must define one Database.
+	#endif
+#endif
 
 Database& Database::getInstance() 		
 {
+#if defined(__MYSQL__) || defined(__ALLDB__)
 	if (g_config.getString(ConfigManager::SQL_TYPE) == "mysql") {
-		static DatabaseMYsql instanceMY;
+		static DatabaseMYsql instanceMY;		
 		return instanceMY;
 	}
-	else if (g_config.getString(ConfigManager::SQL_TYPE) == "odbc") {
+#endif
+	if (g_config.getString(ConfigManager::SQL_TYPE) == "odbc") {
 	}
-	else if (g_config.getString(ConfigManager::SQL_TYPE) == "sqlite") {		
+	if (g_config.getString(ConfigManager::SQL_TYPE) == "sqlite") {		
 	}
-	else if (g_config.getString(ConfigManager::SQL_TYPE) == "pgsql") {
+#if defined(__PGSQL__) || defined(__ALLDB__)
+	if (g_config.getString(ConfigManager::SQL_TYPE) == "pgsql") {
 		static DatabasePGsql instancePG;
 		return instancePG;
 	}
-	static Database instanceDB; // NULL
-	return instanceDB;
-}
-
-bool Database::executeQuery(const std::string& query)
-{
-	return false;
-}
-
-DBResult_ptr Database::storeQuery(const std::string& query)
-{
-	return nullptr;
-}
-
-std::string Database::escapeString(const std::string& s) const {
-	return "''";
-}
-
-std::string Database::escapeBlob(const char* s, uint32_t length) const {
-	return "''";
-}
-
-uint64_t Database::getLastInsertId(){
-	return 0;
-}
-
-std::string Database::getClientVersion()
-{
-	return "''";
+#endif
+	std::cout << "Database with Incorrect name in config.lua. Or not compiled to this database.\n";
+	exit(EXIT_FAILURE);
+	//	wow this is loop. but will never touch =)
+	return Database::getInstance();
 }
 
 bool Database::beginTransaction()
@@ -80,33 +70,6 @@ bool Database::rollback()
 bool Database::commit()
 {
 	return executeQuery("COMMIT");
-}
-
-/***************/
-
-std::string DBResult::getString(const std::string & s) const
-{
-	return std::string();
-}
-
-const char * DBResult::getStream(const std::string & s, uint64_t & size) const
-{
-	return nullptr;
-}
-
-bool DBResult::hasNext()
-{
-	return false;
-}
-
-bool DBResult::next() 
-{
-	return false;
-}
-
-int64_t DBResult::getNumberAny(std::string const & s) const
-{
-	return int64_t();
 }
 
 /***************/

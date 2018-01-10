@@ -25,7 +25,6 @@
 
 #include "definitions.h"
 #include "databasemanager.h"
-#include "iostream"
 #include "configmanager.h"
 extern ConfigManager g_config;
 
@@ -67,7 +66,7 @@ class Database
 		 * @param query command
 		 * @return true on success, false on error
 		 */
-		virtual bool executeQuery(const std::string& query);
+		virtual bool executeQuery(const std::string& query) = 0;
 
 		/**
 		 * Queries database.
@@ -76,7 +75,7 @@ class Database
 		 *
 		 * @return results object (nullptr on error)
 		 */
-		virtual DBResult_ptr storeQuery(const std::string& query);
+		virtual DBResult_ptr storeQuery(const std::string& query) = 0;
 
 		/**
 		 * Escapes string for query.
@@ -86,7 +85,7 @@ class Database
 		 * @param s string to be escaped
 		 * @return quoted string
 		 */
-		virtual std::string escapeString(const std::string& s) const;
+		virtual std::string escapeString(const std::string& s) const = 0;
 
 		/**
 		 * Escapes binary stream for query.
@@ -97,21 +96,21 @@ class Database
 		 * @param length stream length
 		 * @return quoted string
 		 */
-		virtual std::string escapeBlob(const char* s, uint32_t length) const;
+		virtual std::string escapeBlob(const char* s, uint32_t length) const = 0;
 
 		/**
 		 * Retrieve id of last inserted row
 		 *
 		 * @return id on success, 0 if last query did not result on any rows with auto_increment keys
 		 */
-		virtual uint64_t getLastInsertId();
+		virtual uint64_t getLastInsertId() = 0;
 
 		/**
 		 * Get database engine version
 		 *
 		 * @return the database engine version
 		 */
-		virtual std::string getClientVersion();
+		virtual std::string getClientVersion() = 0;
 
 		uint64_t getMaxPacketSize() const {
 			return maxPacketSize;
@@ -151,7 +150,7 @@ class DBResult
 		template<typename A>
 		A getNumber(const std::string & s) const {
 			try{
-				A data = boost::lexical_cast<A>(getNumberAny(s));
+				A data = static_cast<A>(getNumberAny(s));
 				return data;
 			}
 			catch (const std::exception& e) {
@@ -160,14 +159,14 @@ class DBResult
 			}
 		}	
 
-		virtual std::string getString(const std::string& s) const;
-		virtual const char* getStream(const std::string& s, uint64_t& size) const;
+		virtual std::string getString(const std::string& s) const = 0;
+		virtual const char* getStream(const std::string& s, uint64_t& size) const = 0;
 
-		virtual bool hasNext();
-		virtual bool next();
+		virtual bool hasNext() = 0;
+		virtual bool next() = 0;
 
 	private:
-		virtual int64_t getNumberAny(std::string const& s) const;
+		virtual int64_t getNumberAny(std::string const& s) const = 0;
 	friend class Database;
 };
 
