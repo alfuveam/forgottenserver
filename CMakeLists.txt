@@ -21,9 +21,9 @@ include(FindCXX11)
 find_package(GMP REQUIRED)
 find_package(PugiXML REQUIRED)
 find_package(LuaJIT)
-find_package(MySQL)
-find_package(PostgreSQL)
 find_package(Threads)
+
+option(__ALLDB__ "Use All_db" ON)
 
 option(USE_LUAJIT "Use LuaJIT" ${LUAJIT_FOUND})
 
@@ -41,8 +41,22 @@ find_package(Boost 1.53.0 COMPONENTS system iostreams REQUIRED)
 include(src/CMakeLists.txt)
 add_executable(tfs ${tfs_SRC})
 
-include_directories(${POSTGRESQL_INCLUDE_DIR} ${MYSQL_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PUGIXML_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
-target_link_libraries(tfs ${POSTGRESQL_LIBRARIES} ${MYSQL_CLIENT_LIBS} ${LUA_LIBRARIES} ${Boost_LIBRARIES} ${PUGIXML_LIBRARIES} ${GMP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+if(__ALLDB__ OR __MYSQL__)
+	add_definitions(-D__MYSQL__)
+	find_package(MySQL REQUIRED)	
+	include_directories(${MYSQL_INCLUDE_DIR})
+	target_link_libraries(tfs ${MYSQL_CLIENT_LIBS})
+endif()
+
+if(__ALLDB__ OR __PGSQL__)	
+	add_definitions(-D__PGSQL__)
+	find_package(PostgreSQL REQUIRED)
+	include_directories(${POSTGRESQL_INCLUDE_DIR})
+	target_link_libraries(tfs ${POSTGRESQL_LIBRARIES})	
+endif()
+
+include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PUGIXML_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
+target_link_libraries(tfs ${LUA_LIBRARIES} ${Boost_LIBRARIES} ${PUGIXML_LIBRARIES} ${GMP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(tfs PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "src/otpch.h")
 set_target_properties(tfs PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
