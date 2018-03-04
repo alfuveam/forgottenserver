@@ -25,9 +25,6 @@
 #include "database.h"
 #include <libpq-fe.h>
 
-class PgSQLDBResult;
-using DBResult_ptrPGSQL = std::shared_ptr<PgSQLDBResult>;
-
 class DatabasePGsql : public Database
 {
 public:

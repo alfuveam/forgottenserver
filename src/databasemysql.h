@@ -25,8 +25,6 @@
 #include "database.h"
 #include <mysql.h>
 
-class MySQLDBResult;
-using DBResult_ptrMYSQL = std::shared_ptr<MySQLDBResult>;
 
 class DatabaseMYsql : public Database
 {
