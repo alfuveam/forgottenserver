@@ -178,7 +178,7 @@ std::string PgSQLDBResult::getString(const std::string &s) const
 const char* PgSQLDBResult::getStream(const std::string &s, size_t &size) const
 {
 	std::string buf = PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str()));
-	unsigned char* temp = PQunescapeBytea((const unsigned char*)buf.c_str(), &size);
+	unsigned char* temp = PQunescapeBytea((const unsigned char*)buf.c_str(), (size_t*)&size);
 	char* value = new char[buf.size()];
 	memcpy(value, temp, sizeof(buf));
 	PQfreemem(temp);
