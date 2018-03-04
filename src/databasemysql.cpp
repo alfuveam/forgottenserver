@@ -109,7 +109,7 @@ retry:
 	databaseLock.unlock();
 
 	// retrieving results of query
-	DBResult_ptrMYSQL result = std::make_shared<MySQLDBResult>(res);
+	DBResult_ptr result = std::make_shared<MySQLDBResult>(res);
 	if (!result->hasNext()) {
 		return nullptr;
 	}

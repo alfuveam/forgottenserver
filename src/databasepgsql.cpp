@@ -94,7 +94,7 @@ DBResult_ptr DatabasePGsql::storeQuery(const std::string& query)
 
 	databaseLock.unlock();
 	// retrieving results of query
-	DBResult_ptrPGSQL result = std::make_shared<PgSQLDBResult>(res);
+	DBResult_ptr result = std::make_shared<PgSQLDBResult>(res);
 	if (!result->hasNext()) {
 		return nullptr;
 	}
