@@ -149,24 +149,25 @@ class DBResult
 
 		template<typename A>
 		A getNumber(const std::string & s) const {
+			A data;
 			try{
-				A data = static_cast<A>(getNumberAny(s));
-				return data;
+				data = static_cast<A>(getAnyNumber(s));
 			}
 			catch (const std::exception& e) {
 				std::cerr << e.what() << std::endl;				
 				return 0;
 			}
+			return data;
 		}	
 
 		virtual std::string getString(const std::string& s) const = 0;
-		virtual const char* getStream(const std::string& s, uint64_t& size) const = 0;
+		virtual const char* getStream(const std::string& s, size_t& size) const = 0;
 
 		virtual bool hasNext() = 0;
 		virtual bool next() = 0;
 
 	private:
-		virtual int64_t getNumberAny(std::string const& s) const = 0;
+		virtual int64_t getAnyNumber(std::string const& s) const = 0;
 	friend class Database;
 };
 

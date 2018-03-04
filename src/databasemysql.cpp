@@ -151,7 +151,7 @@ std::string DatabaseMYsql::getClientVersion()
 	return "MySQL - " + (std::string)mysql_get_client_info();
 }
 
-int64_t MySQLDBResult::getNumberAny(std::string const & s) const
+int64_t MySQLDBResult::getAnyNumber(std::string const & s) const
 {
 	auto it = listNames.find(s);
 	if (it == listNames.end()) {
@@ -166,9 +166,6 @@ int64_t MySQLDBResult::getNumberAny(std::string const & s) const
 	int64_t data;
 	try {
 		data = boost::lexical_cast<int64_t>(row[it->second]);
-		if (data < 0) {
-			
-		}
 	}
 	catch (boost::bad_lexical_cast&) {
 		data = 0;
@@ -191,7 +188,7 @@ std::string MySQLDBResult::getString(const std::string & s) const
 	return std::string(row[it->second]);
 }
 
-const char * MySQLDBResult::getStream(const std::string & s, uint64_t & size) const
+const char * MySQLDBResult::getStream(const std::string & s, size_t & size) const
 {
 	auto it = listNames.find(s);
 	if (it == listNames.end()) {

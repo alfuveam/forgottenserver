@@ -20,17 +20,21 @@
 #include "otpch.h"
 #include "database.h"
 
+#if !defined(__ALLDB__)
+	#if !defined(__MYSQL__) && !defined(__PGSQL__)
+		#error You must define one Database.
+	#endif
+#else
+	#if defined(__MYSQL__) && defined(__PGSQL__)
+		#error To all database use __ALLDB__ in preprocessor.
+	#endif	
+#endif
+
 #if defined(__MYSQL__) || defined(__ALLDB__)
 	#include "databasemysql.h"
 #endif
 #if defined(__PGSQL__) || defined(__ALLDB__)
 	#include "databasepgsql.h"
-#endif
-
-#if !defined(__ALLDB__)
-	#if !defined(__MYSQL__) && !defined(__PGSQL__)
-		#error You must define one Database.
-	#endif
 #endif
 
 Database& Database::getInstance() 		

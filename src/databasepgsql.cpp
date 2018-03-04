@@ -175,13 +175,14 @@ std::string PgSQLDBResult::getString(const std::string &s) const
 	return std::string(PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str())));
 }
 
-const char* PgSQLDBResult::getStream(const std::string &s, uint64_t &size) const
+const char* PgSQLDBResult::getStream(const std::string &s, size_t &size) const
 {
 	std::string buf = PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str()));
 	unsigned char* temp = PQunescapeBytea((const unsigned char*)buf.c_str(), &size);
-	const char* value = reinterpret_cast<const char*>(temp);
+	char* value = new char[buf.size()];
+	memcpy(value, temp, sizeof(buf));
 	PQfreemem(temp);
-	return value;
+	return (const char*)value;
 }
 
 bool PgSQLDBResult::hasNext()
@@ -219,16 +220,17 @@ PgSQLDBResult::~PgSQLDBResult()
 	PQclear(m_handle);
 }
 
-int64_t PgSQLDBResult::getNumberAny(std::string const & s) const
+int64_t PgSQLDBResult::getAnyNumber(std::string const &s) const
 {	
+		int64_t data;
 		try {
-			int64_t data = boost::lexical_cast<int64_t>(PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str())));
-			return data;
+			data = boost::lexical_cast<int64_t>(PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str())));
 		}
 		catch (const std::exception& e) {
 			std::cerr << e.what() << std::endl;
 			return 0;
 		}
+		return data;
 }
 
 #endif

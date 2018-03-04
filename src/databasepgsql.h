@@ -48,9 +48,9 @@ protected:
 class PgSQLDBResult : public DBResult
 {		
 public:
-	int64_t getNumberAny(std::string const& s) const;
+	int64_t getAnyNumber(std::string const& s) const;
 	std::string getString(const std::string& s) const;
-	const char* getStream(const std::string& s, uint64_t& size) const;
+	const char* getStream(const std::string& s, size_t& size) const;
 
 	bool hasNext();
 	bool next();

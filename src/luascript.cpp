@@ -3852,7 +3852,7 @@ int LuaScriptInterface::luaResultGetStream(lua_State* L)
 		return 1;
 	}
 
-	uint64_t length;
+	size_t length;
 	const char* stream = res->getStream(getString(L, 2), length);
 	lua_pushlstring(L, stream, length);
 	lua_pushnumber(L, length);
