@@ -109,6 +109,7 @@ bool ConfigManager::load()
 		string[SQL_DB] = getGlobalString(L, "sqlDatabase", "forgottenserver");
 		string[SQL_SOCK] = getGlobalString(L, "sqlSock", "");
 		string[SQL_TYPE] = getGlobalString(L, "databaseType", "mysql"); //default tfs 1.x
+		string[SQLITE_DB] = getGlobalString(L, "sqliteDatabase", "forgottenserver.s3db");
 
 		integer[SQL_PORT] = getGlobalNumber(L, "sqlPort", 3306);
 		integer[GAME_PORT] = getGlobalNumber(L, "gameProtocolPort", 7172);

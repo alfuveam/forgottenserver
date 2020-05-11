@@ -24,6 +24,9 @@
 
 #include "networkmessage.h"
 
+static constexpr int32_t CONNECTION_WRITE_TIMEOUT = 30;
+static constexpr int32_t CONNECTION_READ_TIMEOUT = 30;
+
 class Protocol;
 using Protocol_ptr = std::shared_ptr<Protocol>;
 class OutputMessage;

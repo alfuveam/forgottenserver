@@ -35,8 +35,9 @@ bool DatabaseManager::optimizeTables()
 	}
 	else if (g_config.getString(ConfigManager::SQL_TYPE) == "pgsql") {
 		query << "SELECT `TABLE_NAME` FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = 'public'";
-	} else {
-		//n-1
+	}
+	else if (g_config.getString(ConfigManager::SQL_TYPE) == "sqlite") {
+		query << "VACUUM";
 	}
 
 	DBResult_ptr result = db.storeQuery(query.str());
@@ -70,9 +71,11 @@ bool DatabaseManager::tableExists(const std::string& tableName)
 	}
 	else if (g_config.getString(ConfigManager::SQL_TYPE) == "pgsql") {
 		query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = 'public' AND `TABLE_NAME` = " << db.escapeString(tableName) << " LIMIT 1";
-	} else {
-		//n-1
 	}
+	else if (g_config.getString(ConfigManager::SQL_TYPE) == "sqlite") {
+		query << "SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` = " << db.escapeString(tableName) << ";";
+	}
+
 	return db.storeQuery(query.str()).get() != nullptr;
 }
 
@@ -85,8 +88,10 @@ bool DatabaseManager::isDatabaseSetup()
 	}
 	else if (g_config.getString(ConfigManager::SQL_TYPE) == "pgsql") {
 		query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = 'public'";
-	} else {
-		//n-1
+	}
+	else if (g_config.getString(ConfigManager::SQL_TYPE) == "sqlite") {
+		//a pre-setup sqlite database is already included
+		return true;
 	}
 	return db.storeQuery(query.str()).get() != nullptr;
 }

@@ -1779,6 +1779,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::SQL_DB)
 	registerEnumIn("configKeys", ConfigManager::SQL_SOCK)
 	registerEnumIn("configKeys", ConfigManager::SQL_TYPE)
+	registerEnumIn("configKeys", ConfigManager::SQLITE_DB)
 	registerEnumIn("configKeys", ConfigManager::DEFAULT_PRIORITY)
 	registerEnumIn("configKeys", ConfigManager::MAP_AUTHOR)
 

@@ -62,6 +62,7 @@ sqlPass = ""
 sqlDatabase = "forgottenserver"
 sqlPort = 3306
 sqlSock = ""
+sqliteDatabase = "forgottenserver.s3db"
 -- options: mysql, sqlite, odbc or pgsql
 databaseType = "mysql"
 

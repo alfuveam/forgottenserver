@@ -55,6 +55,13 @@ if(__ALLDB__ OR __PGSQL__)
 	target_link_libraries(tfs ${POSTGRESQL_LIBRARIES})	
 endif()
 
+if(__ALLDB__ OR __SQLITE__)	
+	add_definitions(-D__SQLITE__)
+	find_package(SQLite REQUIRED)
+	include_directories(${SQLite_INCLUDE_DIR})
+	target_link_libraries(tfs ${SQLite_LIBRARIES})	
+endif()
+
 include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PUGIXML_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
 target_link_libraries(tfs ${LUA_LIBRARIES} ${Boost_LIBRARIES} ${PUGIXML_LIBRARIES} ${GMP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 

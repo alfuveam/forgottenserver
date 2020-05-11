@@ -61,6 +61,7 @@ class ConfigManager
 			SQL_DB,
 			SQL_SOCK,
 			SQL_TYPE,
+			SQLITE_DB,
 			DEFAULT_PRIORITY,
 			MAP_AUTHOR,
 
