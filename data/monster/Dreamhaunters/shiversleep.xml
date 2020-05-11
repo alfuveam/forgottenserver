@@ -15,6 +15,8 @@
 		<flag targetdistance="1" />
 		<flag staticattack="90" />
 		<flag runonhealth="0" />
+		<flag canwalkonenergy="0" />
+		<flag canwalkonfire="0" />
 	</flags>
 	<attacks>
 		<attack name="melee" interval="2000" min="0" max="-450" />
@@ -42,8 +44,8 @@
 		<voice sentence="Knorrrr!" />
 	</voices>
 	<loot>
-		<item name="white pearl" countmax="1" chance="866" />
-		<item name="black pearl" countmax="1" chance="866" />
+		<item name="white pearl" chance="866" />
+		<item name="black pearl" chance="866" />
 		<item name="gold coin" countmax="100" chance="30000" />
 		<item name="platinum coin" countmax="10" chance="33333" />
 		<item name="giant sword" chance="422" />

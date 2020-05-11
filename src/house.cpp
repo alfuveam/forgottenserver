@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,23 +79,39 @@ void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* play
 
 		//clean access lists
 		owner = 0;
+		ownerAccountId = 0;
 		setAccessList(SUBOWNER_LIST, "");
 		setAccessList(GUEST_LIST, "");
 
-		for (Door* door : doorList) {
+		for (Door* door : doorSet) {
 			door->setAccessList("");
 		}
+	} else {
+		std::string strRentPeriod = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
+		time_t currentTime = time(nullptr);
+		if (strRentPeriod == "yearly") {
+		    currentTime += 24 * 60 * 60 * 365;
+		} else if (strRentPeriod == "monthly") {
+		    currentTime += 24 * 60 * 60 * 30;
+		} else if (strRentPeriod == "weekly") {
+		    currentTime += 24 * 60 * 60 * 7;
+		} else if (strRentPeriod == "daily") {
+		    currentTime += 24 * 60 * 60;
+		} else {
+		    currentTime = 0;
+		}
 
-		//reset paid date
-		paidUntil = 0;
-		rentWarnings = 0;
+		paidUntil = currentTime;
 	}
+
+	rentWarnings = 0;
 
 	if (guid != 0) {
 		std::string name = IOLoginData::getNameByGuid(guid);
 		if (!name.empty()) {
 			owner = guid;
 			ownerName = name;
+			ownerAccountId = IOLoginData::getAccountIdByPlayerName(name);
 		}
 	}
 
@@ -116,7 +132,7 @@ void House::updateDoorDescription() const
 		}
 	}
 
-	for (const auto& it : doorList) {
+	for (const auto& it : doorSet) {
 		it->setSpecialDescription(ss.str());
 	}
 }
@@ -125,6 +141,12 @@ AccessHouseLevel_t House::getHouseAccessLevel(const Player* player)
 {
 	if (!player) {
 		return HOUSE_OWNER;
+	}
+
+	if (g_config.getBoolean(ConfigManager::HOUSE_OWNED_BY_ACCOUNT)) {
+		if (ownerAccountId == player->getAccount()) {
+			return HOUSE_OWNER;
+		}
 	}
 
 	if (player->hasFlag(PlayerFlag_CanEditHouses)) {
@@ -275,17 +297,17 @@ bool House::isInvited(const Player* player)
 void House::addDoor(Door* door)
 {
 	door->incrementReferenceCounter();
-	doorList.push_back(door);
+	doorSet.insert(door);
 	door->setHouse(this);
 	updateDoorDescription();
 }
 
 void House::removeDoor(Door* door)
 {
-	auto it = std::find(doorList.begin(), doorList.end(), door);
-	if (it != doorList.end()) {
+	auto it = doorSet.find(door);
+	if (it != doorSet.end()) {
 		door->decrementReferenceCounter();
-		doorList.erase(it);
+		doorSet.erase(it);
 	}
 }
 
@@ -297,7 +319,7 @@ void House::addBed(BedItem* bed)
 
 Door* House::getDoorByNumber(uint32_t doorId) const
 {
-	for (Door* door : doorList) {
+	for (Door* door : doorSet) {
 		if (door->getDoorId() == doorId) {
 			return door;
 		}
@@ -307,7 +329,7 @@ Door* House::getDoorByNumber(uint32_t doorId) const
 
 Door* House::getDoorByPosition(const Position& pos)
 {
-	for (Door* door : doorList) {
+	for (Door* door : doorSet) {
 		if (door->getPosition() == pos) {
 			return door;
 		}
@@ -394,9 +416,8 @@ bool House::executeTransfer(HouseTransferItem* item, Player* newOwner)
 void AccessList::parseList(const std::string& list)
 {
 	playerList.clear();
-	guildList.clear();
-	expressionList.clear();
-	regExList.clear();
+	guildRankList.clear();
+	allowEveryone = false;
 	this->list = list;
 	if (list.empty()) {
 		return;
@@ -405,7 +426,12 @@ void AccessList::parseList(const std::string& list)
 	std::istringstream listStream(list);
 	std::string line;
 
+	int lineNo = 1;
 	while (getline(listStream, line)) {
+		if (++lineNo > 100) {
+			break;
+		}
+
 		trimString(line);
 		trim_left(line, '\t');
 		trim_right(line, '\t');
@@ -419,9 +445,15 @@ void AccessList::parseList(const std::string& list)
 
 		std::string::size_type at_pos = line.find("@");
 		if (at_pos != std::string::npos) {
-			addGuild(line.substr(at_pos + 1));
+			if (at_pos == 0) {
+				addGuild(line.substr(1));
+			} else {
+				addGuildRank(line.substr(0, at_pos - 1), line.substr(at_pos + 1));
+			}
+		} else if (line == "*") {
+			allowEveryone = true;
 		} else if (line.find("!") != std::string::npos || line.find("*") != std::string::npos || line.find("?") != std::string::npos) {
-			addExpression(line);
+			continue; // regexp no longer supported
 		} else {
 			addPlayer(line);
 		}
@@ -441,58 +473,50 @@ void AccessList::addPlayer(const std::string& name)
 	}
 }
 
-void AccessList::addGuild(const std::string& name)
+namespace {
+
+const Guild* getGuildByName(const std::string& name)
 {
 	uint32_t guildId = IOGuild::getGuildIdByName(name);
-	if (guildId != 0) {
-		guildList.insert(guildId);
+	if (guildId == 0) {
+		return nullptr;
+	}
+
+	const Guild* guild = g_game.getGuild(guildId);
+	if (guild) {
+		return guild;
+	}
+
+	return IOGuild::loadGuild(guildId);
+}
+
+}
+
+void AccessList::addGuild(const std::string& name)
+{
+	const Guild* guild = getGuildByName(name);
+	if (guild) {
+		for (const auto& rank : guild->getRanks()) {
+			guildRankList.insert(rank.id);
+		}
 	}
 }
 
-void AccessList::addExpression(const std::string& expression)
+void AccessList::addGuildRank(const std::string& name, const std::string& rankName)
 {
-	if (std::find(expressionList.begin(), expressionList.end(), expression) != expressionList.end()) {
-		return;
-	}
-
-	std::string outExp;
-	outExp.reserve(expression.length());
-
-	std::string metachars = ".[{}()\\+|^$";
-	for (const char c : expression) {
-		if (metachars.find(c) != std::string::npos) {
-			outExp.push_back('\\');
+	const Guild* guild = getGuildByName(name);
+	if (guild) {
+		const GuildRank* rank = guild->getRankByName(rankName);
+		if (rank) {
+			guildRankList.insert(rank->id);
 		}
-		outExp.push_back(c);
 	}
-
-	replaceString(outExp, "*", ".*");
-	replaceString(outExp, "?", ".?");
-
-	try {
-		if (!outExp.empty()) {
-			expressionList.push_back(outExp);
-
-			if (outExp.front() == '!') {
-				if (outExp.length() > 1) {
-					regExList.emplace_front(std::regex(outExp.substr(1)), false);
-				}
-			} else {
-				regExList.emplace_back(std::regex(outExp), true);
-			}
-		}
-	} catch (...) {}
 }
 
 bool AccessList::isInList(const Player* player)
 {
-	std::string name = asLowerCaseString(player->getName());
-	std::cmatch what;
-
-	for (const auto& it : regExList) {
-		if (std::regex_match(name.c_str(), what, it.first)) {
-			return it.second;
-		}
+	if (allowEveryone) {
+		return true;
 	}
 
 	auto playerIt = playerList.find(player->getGUID());
@@ -500,8 +524,8 @@ bool AccessList::isInList(const Player* player)
 		return true;
 	}
 
-	const Guild* guild = player->getGuild();
-	return guild && guildList.find(guild->getId()) != guildList.end();
+	const GuildRank* rank = player->getGuildRank();
+	return rank && guildRankList.find(rank->id) != guildRankList.end();
 }
 
 void AccessList::getList(std::string& list) const

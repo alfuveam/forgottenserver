@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ void printXMLError(const std::string& where, const std::string& fileName, const 
 	uint32_t currentLine = 1;
 	std::string line;
 
-	size_t offset = static_cast<size_t>(result.offset);
+	auto offset = static_cast<size_t>(result.offset);
 	size_t lineOffsetPosition = 0;
 	size_t index = 0;
 	size_t bytes;
@@ -73,7 +73,7 @@ void printXMLError(const std::string& where, const std::string& fileName, const 
 	std::cout << '^' << std::endl;
 }
 
-inline static uint32_t circularShift(int bits, uint32_t value)
+static uint32_t circularShift(int bits, uint32_t value)
 {
 	return (value << bits) | (value >> (32 - bits));
 }
@@ -211,17 +211,17 @@ std::string generateToken(const std::string& key, uint32_t ticks)
 
 	// hmac concat outer pad with message, conversion from hex to int needed
 	for (uint8_t i = 0; i < message.length(); i += 2) {
-		oKeyPad.push_back(static_cast<char>(std::stol(message.substr(i, 2), nullptr, 16)));
+		oKeyPad.push_back(static_cast<char>(std::strtoul(message.substr(i, 2).c_str(), nullptr, 16)));
 	}
 
 	// hmac second pass
 	message.assign(transformToSHA1(oKeyPad));
 
 	// calculate hmac offset
-	uint32_t offset = static_cast<uint32_t>(std::stol(message.substr(39, 1), nullptr, 16) & 0xF);
+	uint32_t offset = static_cast<uint32_t>(std::strtoul(message.substr(39, 1).c_str(), nullptr, 16) & 0xF);
 
 	// get truncated hash
-	uint32_t truncHash = std::stol(message.substr(2 * offset, 8), nullptr, 16) & 0x7FFFFFFF;
+	uint32_t truncHash = static_cast<uint32_t>(std::strtoul(message.substr(2 * offset, 8).c_str(), nullptr, 16)) & 0x7FFFFFFF;
 	message.assign(std::to_string(truncHash));
 
 	// return only last AUTHENTICATOR_DIGITS (default 6) digits, also asserts exactly 6 digits
@@ -752,6 +752,32 @@ Skulls_t getSkullType(const std::string& strValue)
 	return SKULL_NONE;
 }
 
+std::string getSpecialSkillName(uint8_t skillid)
+{
+	switch (skillid) {
+		case SPECIALSKILL_CRITICALHITCHANCE:
+			return "critical hit chance";
+
+		case SPECIALSKILL_CRITICALHITAMOUNT:
+			return "critical extra damage";
+
+		case SPECIALSKILL_LIFELEECHCHANCE:
+			return "hitpoints leech chance";
+
+		case SPECIALSKILL_LIFELEECHAMOUNT:
+			return "hitpoints leech amount";
+
+		case SPECIALSKILL_MANALEECHCHANCE:
+			return "manapoints leech chance";
+
+		case SPECIALSKILL_MANALEECHAMOUNT:
+			return "mana points leech amount";
+
+		default:
+			return "unknown";
+	}
+}
+
 std::string getSkillName(uint8_t skillid)
 {
 	switch (skillid) {
@@ -969,6 +995,8 @@ itemAttrTypes stringToItemAttribute(const std::string& str)
 		return ITEM_ATTRIBUTE_FLUIDTYPE;
 	} else if (str == "doorid") {
 		return ITEM_ATTRIBUTE_DOORID;
+	} else if (str == "wrapid") {
+		return ITEM_ATTRIBUTE_WRAPID;
 	}
 	return ITEM_ATTRIBUTE_NONE;
 }
@@ -990,7 +1018,7 @@ const char* getReturnMessage(ReturnValue value)
 {
 	switch (value) {
 		case RETURNVALUE_DESTINATIONOUTOFREACH:
-			return "Destination is out of reach.";
+			return "Destination is out of range.";
 
 		case RETURNVALUE_NOTMOVEABLE:
 			return "You cannot move this object.";
@@ -1014,7 +1042,7 @@ const char* getReturnMessage(ReturnValue value)
 			return "You may only use one weapon.";
 
 		case RETURNVALUE_TOOFARAWAY:
-			return "Too far away.";
+			return "You are too far away.";
 
 		case RETURNVALUE_FIRSTGODOWNSTAIRS:
 			return "First go downstairs.";
@@ -1078,7 +1106,7 @@ const char* getReturnMessage(ReturnValue value)
 			return "You are not allowed to shoot directly on players.";
 
 		case RETURNVALUE_NOTENOUGHLEVEL:
-			return "You do not have enough level.";
+			return "Your level is too low.";
 
 		case RETURNVALUE_NOTENOUGHMAGICLEVEL:
 			return "You do not have enough magic level.";
@@ -1092,8 +1120,11 @@ const char* getReturnMessage(ReturnValue value)
 		case RETURNVALUE_YOUAREEXHAUSTED:
 			return "You are exhausted.";
 
+		case RETURNVALUE_YOUCANNOTUSEOBJECTSTHATFAST:
+			return "You cannot use objects that fast.";
+
 		case RETURNVALUE_CANONLYUSETHISRUNEONCREATURES:
-			return "You can only use this rune on creatures.";
+			return "You can only use it on creatures.";
 
 		case RETURNVALUE_PLAYERISNOTREACHABLE:
 			return "Player is not reachable.";
@@ -1105,7 +1136,7 @@ const char* getReturnMessage(ReturnValue value)
 			return "This action is not permitted in a protection zone.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKTHISPLAYER:
-			return "You may not attack this player.";
+			return "You may not attack this person.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKTHISCREATURE:
 			return "You may not attack this creature.";
@@ -1126,10 +1157,10 @@ const char* getReturnMessage(ReturnValue value)
 			return "You need a premium account.";
 
 		case RETURNVALUE_YOUNEEDTOLEARNTHISSPELL:
-			return "You need to learn this spell first.";
+			return "You must learn this spell first.";
 
 		case RETURNVALUE_YOURVOCATIONCANNOTUSETHISSPELL:
-			return "Your vocation cannot use this spell.";
+			return "You have the wrong vocation to cast this spell.";
 
 		case RETURNVALUE_YOUNEEDAWEAPONTOUSETHISSPELL:
 			return "You need to equip a weapon to use this spell.";
@@ -1173,7 +1204,46 @@ const char* getReturnMessage(ReturnValue value)
 		case RETURNVALUE_ANOTHERRAIDISALREADYEXECUTING:
 			return "Another raid is already executing.";
 
+		case RETURNVALUE_TRADEPLAYERFARAWAY:
+			return "Trade player is too far away.";
+
+		case RETURNVALUE_YOUDONTOWNTHISHOUSE:
+			return "You don't own this house.";
+
+		case RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE:
+			return "Trade player already owns a house.";
+
+		case RETURNVALUE_TRADEPLAYERHIGHESTBIDDER:
+			return "Trade player is currently the highest bidder of an auctioned house.";
+
+		case RETURNVALUE_YOUCANNOTTRADETHISHOUSE:
+			return "You can not trade this house.";
+
+		case RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION:
+			return "You don't have the required profession.";
+
 		default: // RETURNVALUE_NOTPOSSIBLE, etc
 			return "Sorry, not possible.";
 	}
+}
+
+int64_t OTSYS_TIME()
+{
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+SpellGroup_t stringToSpellGroup(const std::string& value)
+{
+	std::string tmpStr = asLowerCaseString(value);
+	if (tmpStr == "attack" || tmpStr == "1") {
+		return SPELLGROUP_ATTACK;
+	} else if (tmpStr == "healing" || tmpStr == "2") {
+		return SPELLGROUP_HEALING;
+	} else if (tmpStr == "support" || tmpStr == "3") {
+		return SPELLGROUP_SUPPORT;
+	} else if (tmpStr == "special" || tmpStr == "4") {
+		return SPELLGROUP_SPECIAL;
+	}
+
+	return SPELLGROUP_NONE;
 }

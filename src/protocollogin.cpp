@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,19 +86,36 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
 	//Add char list
 	output->addByte(0x64);
 
-	output->addByte(1); // number of worlds
-
-	output->addByte(0); // world id
-	output->addString(g_config.getString(ConfigManager::SERVER_NAME));
-	output->addString(g_config.getString(ConfigManager::IP));
-	output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
-	output->addByte(0);
-
 	uint8_t size = std::min<size_t>(std::numeric_limits<uint8_t>::max(), account.characters.size());
+
+	if (g_config.getBoolean(ConfigManager::ONLINE_OFFLINE_CHARLIST)) {
+		output->addByte(2); // number of worlds
+
+		for (uint8_t i = 0; i < 2; i++) {
+			output->addByte(i); // world id
+			output->addString(i == 0 ? "Offline" : "Online");
+			output->addString(g_config.getString(ConfigManager::IP));
+			output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
+			output->addByte(0);
+		}
+	} else {
+		output->addByte(1); // number of worlds
+		output->addByte(0); // world id
+		output->addString(g_config.getString(ConfigManager::SERVER_NAME));
+		output->addString(g_config.getString(ConfigManager::IP));
+		output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
+		output->addByte(0);
+	}
+
 	output->addByte(size);
 	for (uint8_t i = 0; i < size; i++) {
-		output->addByte(0);
-		output->addString(account.characters[i]);
+		const std::string& character = account.characters[i];
+		if (g_config.getBoolean(ConfigManager::ONLINE_OFFLINE_CHARLIST)) {
+			output->addByte(g_game.getPlayerByName(character) ? 1 : 0);
+		} else {
+			output->addByte(0);
+		}
+		output->addString(character);
 	}
 
 	//Add premium days
@@ -107,7 +124,7 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
 		output->addByte(1);
 		output->add<uint32_t>(0);
 	} else {
-		output->addByte(0);
+		output->addByte(account.premiumDays > 0 ? 1 : 0);
 		output->add<uint32_t>(time(nullptr) + (account.premiumDays * 86400));
 	}
 
@@ -150,13 +167,13 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 		return;
 	}
 
-	uint32_t key[4];
+	xtea::key key;
 	key[0] = msg.get<uint32_t>();
 	key[1] = msg.get<uint32_t>();
 	key[2] = msg.get<uint32_t>();
 	key[3] = msg.get<uint32_t>();
 	enableXTEAEncryption();
-	setXTEAKey(key);
+	setXTEAKey(std::move(key));
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 		std::ostringstream ss;

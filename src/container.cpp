@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,11 @@ Container* Container::getParentContainer()
 		return nullptr;
 	}
 	return thing->getContainer();
+}
+
+std::string Container::getName(bool addArticle /* = false*/) const {
+	const ItemType& it = items[id];
+	return getNameDescription(it, this, -1, addArticle);
 }
 
 bool Container::hasParent() const
@@ -215,7 +220,7 @@ bool Container::isHoldingItem(const Item* item) const
 
 void Container::onAddContainerItem(Item* item)
 {
-	SpectatorHashSet spectators;
+	SpectatorVec spectators;
 	g_game.map.getSpectators(spectators, getPosition(), false, true, 2, 2, 2, 2);
 
 	//send to client
@@ -231,7 +236,7 @@ void Container::onAddContainerItem(Item* item)
 
 void Container::onUpdateContainerItem(uint32_t index, Item* oldItem, Item* newItem)
 {
-	SpectatorHashSet spectators;
+	SpectatorVec spectators;
 	g_game.map.getSpectators(spectators, getPosition(), false, true, 2, 2, 2, 2);
 
 	//send to client
@@ -247,7 +252,7 @@ void Container::onUpdateContainerItem(uint32_t index, Item* oldItem, Item* newIt
 
 void Container::onRemoveContainerItem(uint32_t index, Item* item)
 {
-	SpectatorHashSet spectators;
+	SpectatorVec spectators;
 	g_game.map.getSpectators(spectators, getPosition(), false, true, 2, 2, 2, 2);
 
 	//send change to client
@@ -398,7 +403,7 @@ ReturnValue Container::queryRemove(const Thing& thing, uint32_t count, uint32_t 
 	return RETURNVALUE_NOERROR;
 }
 
-Cylinder* Container::queryDestination(int32_t& index, const Thing &thing, Item** destItem,
+Cylinder* Container::queryDestination(int32_t& index, const Thing& thing, Item** destItem,
 		uint32_t& flags)
 {
 	if (!unlocked) {
@@ -437,20 +442,6 @@ Cylinder* Container::queryDestination(int32_t& index, const Thing &thing, Item**
 		return this;
 	}
 
-	bool autoStack = !hasBitSet(FLAG_IGNOREAUTOSTACK, flags);
-	if (autoStack && item->isStackable() && item->getParent() != this) {
-		//try find a suitable item to stack with
-		uint32_t n = 0;
-		for (Item* listItem : itemlist) {
-			if (listItem != item && listItem->equals(item) && listItem->getItemCount() < 100) {
-				*destItem = listItem;
-				index = n;
-				return this;
-			}
-			++n;
-		}
-	}
-
 	if (index != INDEX_WHEREEVER) {
 		Item* itemFromIndex = getItemByIndex(index);
 		if (itemFromIndex) {
@@ -462,6 +453,24 @@ Cylinder* Container::queryDestination(int32_t& index, const Thing &thing, Item**
 			index = INDEX_WHEREEVER;
 			*destItem = nullptr;
 			return subCylinder;
+		}
+	}
+
+	bool autoStack = !hasBitSet(FLAG_IGNOREAUTOSTACK, flags);
+	if (autoStack && item->isStackable() && item->getParent() != this) {
+		if (*destItem && (*destItem)->equals(item) && (*destItem)->getItemCount() < 100) {
+			return this;
+		}
+
+		//try find a suitable item to stack with
+		uint32_t n = 0;
+		for (Item* listItem : itemlist) {
+			if (listItem != item && listItem->equals(item) && listItem->getItemCount() < 100) {
+				*destItem = listItem;
+				index = n;
+				return this;
+			}
+			++n;
 		}
 	}
 	return this;

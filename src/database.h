@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,7 +116,10 @@ class Database
 			return maxPacketSize;
 		}
 
-	protected:
+		bool m_connected;
+		std::recursive_mutex databaseLock;
+
+	private:
 		/**
 		 * Transaction related methods.
 		 *
@@ -128,9 +131,6 @@ class Database
 		bool rollback();
 		bool commit();
 		
-		bool m_connected;
-		
-		std::recursive_mutex databaseLock;
 	private:
 		uint64_t maxPacketSize = 1048576;
 	friend class DBTransaction;
@@ -182,7 +182,7 @@ class DBInsert
 		bool addRow(std::ostringstream& row);
 		bool execute();
 
-	protected:
+	private:
 		std::string query;
 		std::string values;
 		size_t length;
@@ -213,7 +213,7 @@ class DBTransaction
 				return false;
 			}
 
-			state = STEATE_COMMIT;
+			state = STATE_COMMIT;
 			return Database::getInstance().commit();
 		}
 
@@ -221,7 +221,7 @@ class DBTransaction
 		enum TransactionStates_t {
 			STATE_NO_START,
 			STATE_START,
-			STEATE_COMMIT,
+			STATE_COMMIT,
 		};
 
 		TransactionStates_t state = STATE_NO_START;

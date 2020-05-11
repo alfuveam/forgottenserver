@@ -15,6 +15,7 @@
 		<flag targetdistance="1" />
 		<flag staticattack="70" />
 		<flag runonhealth="250" />
+		<flag canwalkonenergy="0" />
 	</flags>
 	<attacks>
 		<attack name="melee" interval="2000" min="0" max="-225" />
@@ -67,7 +68,7 @@
 		<voice sentence="Chill out!." />
 	</voices>
 	<loot>
-		<item name="gemmed book" chance="8500" />
+		<item id="1976" chance="8500" /><!-- book (gemmed) -->
 		<item name="golden mug" chance="3000" />
 		<item name="small sapphire" chance="5200" />
 		<item name="gold coin" countmax="100" chance="33000" />

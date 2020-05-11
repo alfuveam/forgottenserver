@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,6 +108,11 @@ enum MagicEffectClasses : uint8_t {
 	CONST_ME_YELLOWSMOKE = 168,
 	CONST_ME_GREENSMOKE = 169,
 	CONST_ME_PURPLESMOKE = 170,
+	CONST_ME_EARLY_THUNDER = 171,
+	CONST_ME_RAGIAZ_BONECAPSULE = 172,
+	CONST_ME_CRITICAL_DAMAGE = 173,
+	// 174 is empty
+	CONST_ME_PLUNGING_FISH = 175,
 };
 
 enum ShootType_t : uint8_t {
@@ -212,6 +217,9 @@ enum MessageClasses : uint8_t {
 	MESSAGE_EVENT_DEFAULT = 30, /*White message at the bottom of the game window and in the console*/
 	MESSAGE_LOOT = 31,
 
+	MESSAGE_GUILD = 33, /*White message in channel (+ channelId)*/
+	MESSAGE_PARTY_MANAGEMENT = 34, /*White message in channel (+ channelId)*/
+	MESSAGE_PARTY = 35, /*White message in channel (+ channelId)*/
 	MESSAGE_EVENT_ORANGE = 36, /*Orange message in the console*/
 	MESSAGE_STATUS_CONSOLE_ORANGE = 37,  /*Orange message in the console*/
 };
@@ -325,8 +333,10 @@ enum TextColor_t : uint8_t {
 	TEXTCOLOR_DARKRED = 108,
 	TEXTCOLOR_LIGHTGREY = 129,
 	TEXTCOLOR_SKYBLUE = 143,
-	TEXTCOLOR_PURPLE = 155,
+	TEXTCOLOR_PURPLE = 154,
+	TEXTCOLOR_ELECTRICPURPLE = 155,
 	TEXTCOLOR_RED = 180,
+	TEXTCOLOR_PASTELRED = 194,
 	TEXTCOLOR_ORANGE = 198,
 	TEXTCOLOR_YELLOW = 210,
 	TEXTCOLOR_WHITE_EXP = 215,
@@ -382,6 +392,7 @@ enum WeaponAction_t : uint8_t {
 };
 
 enum WieldInfo_t {
+	WIELDINFO_NONE = 0 << 0,
 	WIELDINFO_LEVEL = 1 << 0,
 	WIELDINFO_MAGLV = 1 << 1,
 	WIELDINFO_VOCREQ = 1 << 2,
@@ -444,21 +455,43 @@ enum item_t : uint16_t {
 	ITEM_MAGICWALL = 1497,
 	ITEM_MAGICWALL_PERSISTENT = 1498,
 	ITEM_MAGICWALL_SAFE = 11098,
+	ITEM_MAGICWALL_NOPVP = 20669,
 
 	ITEM_WILDGROWTH = 1499,
 	ITEM_WILDGROWTH_PERSISTENT = 2721,
 	ITEM_WILDGROWTH_SAFE = 11099,
+	ITEM_WILDGROWTH_NOPVP = 20670,
 
 	ITEM_BAG = 1987,
+	ITEM_SHOPPING_BAG = 23782,
 
 	ITEM_GOLD_COIN = 2148,
 	ITEM_PLATINUM_COIN = 2152,
 	ITEM_CRYSTAL_COIN = 2160,
+	ITEM_STORE_COIN = 24774, // in-game store currency
 
 	ITEM_DEPOT = 2594,
 	ITEM_LOCKER1 = 2589,
 	ITEM_INBOX = 14404,
 	ITEM_MARKET = 14405,
+	ITEM_STORE_INBOX = 26052,
+	ITEM_DEPOT_BOX_I = 25453,
+	ITEM_DEPOT_BOX_II = 25454,
+	ITEM_DEPOT_BOX_III = 25455,
+	ITEM_DEPOT_BOX_IV = 25456,
+	ITEM_DEPOT_BOX_V = 25457,
+	ITEM_DEPOT_BOX_VI = 25458,
+	ITEM_DEPOT_BOX_VII = 25459,
+	ITEM_DEPOT_BOX_VIII = 25460,
+	ITEM_DEPOT_BOX_IX = 25461,
+	ITEM_DEPOT_BOX_X = 25462,
+	ITEM_DEPOT_BOX_XI = 25463,
+	ITEM_DEPOT_BOX_XII = 25464,
+	ITEM_DEPOT_BOX_XIII = 25465,
+	ITEM_DEPOT_BOX_XIV = 25466,
+	ITEM_DEPOT_BOX_XV = 25467,
+	ITEM_DEPOT_BOX_XVI = 25468,
+	ITEM_DEPOT_BOX_XVII = 25469,
 
 	ITEM_MALE_CORPSE = 3058,
 	ITEM_FEMALE_CORPSE = 3065,
@@ -521,7 +554,6 @@ enum ReloadTypes_t : uint8_t  {
 	RELOAD_TYPE_ALL,
 	RELOAD_TYPE_ACTIONS,
 	RELOAD_TYPE_CHAT,
-	RELOAD_TYPE_COMMANDS,
 	RELOAD_TYPE_CONFIG,
 	RELOAD_TYPE_CREATURESCRIPTS,
 	RELOAD_TYPE_EVENTS,
@@ -534,6 +566,7 @@ enum ReloadTypes_t : uint8_t  {
 	RELOAD_TYPE_NPCS,
 	RELOAD_TYPE_QUESTS,
 	RELOAD_TYPE_RAIDS,
+	RELOAD_TYPE_SCRIPTS,
 	RELOAD_TYPE_SPELLS,
 	RELOAD_TYPE_TALKACTIONS,
 	RELOAD_TYPE_WEAPONS,

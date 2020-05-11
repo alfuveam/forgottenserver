@@ -15,6 +15,9 @@
 		<flag targetdistance="1" />
 		<flag staticattack="90" />
 		<flag runonhealth="55" />
+		<flag canwalkonenergy="0" />
+		<flag canwalkonfire="0" />
+		<flag canwalkonpoison="0" />
 	</flags>
 	<defenses armor="15" defense="15">
 		<defense name="speed" interval="2000" chance="15" speedchange="400" duration="4000">
@@ -27,6 +30,9 @@
 		<voice sentence="*sniff*" />
 		<voice sentence="*wheeze*" />
 	</voices>
+	<script>
+		<event name="WhiteDeerScouts" />
+	</script>
 	<loot>
 		<item name="ham" countmax="3" chance="20000" />
 		<item name="white deer antlers" chance="20000" />

@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,18 +150,6 @@ class NetworkMessage
 		}
 
 	protected:
-		inline bool canAdd(size_t size) const {
-			return (size + info.position) < MAX_BODY_LENGTH;
-		}
-
-		inline bool canRead(int32_t size) {
-			if ((info.position + size) > (info.length + 8) || size >= (NETWORKMESSAGE_MAXSIZE - info.position)) {
-				info.overrun = true;
-				return false;
-			}
-			return true;
-		}
-
 		struct NetworkMessageInfo {
 			MsgSize_t length = 0;
 			MsgSize_t position = INITIAL_BUFFER_POSITION;
@@ -170,6 +158,19 @@ class NetworkMessage
 
 		NetworkMessageInfo info;
 		uint8_t buffer[NETWORKMESSAGE_MAXSIZE];
+
+	private:
+		bool canAdd(size_t size) const {
+			return (size + info.position) < MAX_BODY_LENGTH;
+		}
+
+		bool canRead(int32_t size) {
+			if ((info.position + size) > (info.length + 8) || size >= (NETWORKMESSAGE_MAXSIZE - info.position)) {
+				info.overrun = true;
+				return false;
+			}
+			return true;
+		}
 };
 
 #endif // #ifndef __NETWORK_MESSAGE_H__
