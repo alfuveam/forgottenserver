@@ -186,19 +186,36 @@ void Connection::parsePacket(const boost::system::error_code& error)
 		return;
 	}
 
-	//Check packet checksum
-	uint32_t checksum;
-	int32_t len = msg.getLength() - msg.getBufferPosition() - NetworkMessage::CHECKSUM_LENGTH;
-	if (len > 0) {
-		checksum = adlerChecksum(msg.getBuffer() + msg.getBufferPosition() + NetworkMessage::CHECKSUM_LENGTH, len);
+	uint32_t recvCheckNumber;
+	bool isCorrectCheckNumber = true;
+
+	if(g_config.getBoolean(ConfigManager::SEQUENCE_NUMBER)) {
+		recvCheckNumber = msg.get<uint32_t>();
+		if((recvCheckNumber + 1) == sequenceNumber || recvCheckNumber == sequenceNumber) {
+			isCorrectCheckNumber = true;
+		} else {
+			isCorrectCheckNumber = false;
+		}		
 	} else {
-		checksum = 0;
+		//Check packet checksum
+		uint32_t checksum;
+		int32_t len = msg.getLength() - msg.getBufferPosition() - NetworkMessage::CHECKNUMBER_LENGTH;
+		if (len > 0) {
+			checksum = adlerChecksum(msg.getBuffer() + msg.getBufferPosition() + NetworkMessage::CHECKNUMBER_LENGTH, len);
+		} else {
+			checksum = 0;
+		}
+
+		recvCheckNumber = msg.get<uint32_t>();
+		
+		if (recvCheckNumber != checksum) {
+			isCorrectCheckNumber = false;
+		}
 	}
 
-	uint32_t recvChecksum = msg.get<uint32_t>();
-	if (recvChecksum != checksum) {
+	if(!isCorrectCheckNumber){
 		// it might not have been the checksum, step back
-		msg.skipBytes(-NetworkMessage::CHECKSUM_LENGTH);
+		msg.skipBytes(-NetworkMessage::CHECKNUMBER_LENGTH);
 	}
 
 	if (!receivedFirst) {
@@ -207,7 +224,7 @@ void Connection::parsePacket(const boost::system::error_code& error)
 
 		if (!protocol) {
 			// Game protocol has already been created at this point
-			protocol = service_port->make_protocol(recvChecksum == checksum, msg, shared_from_this());
+			protocol = service_port->make_protocol(isCorrectCheckNumber, msg, shared_from_this());
 			if (!protocol) {
 				close(FORCE_CLOSE);
 				return;

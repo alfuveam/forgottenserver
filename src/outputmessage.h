@@ -20,9 +20,12 @@
 #ifndef FS_OUTPUTMESSAGE_H_C06AAED85C7A43939F22D229297C0CC1
 #define FS_OUTPUTMESSAGE_H_C06AAED85C7A43939F22D229297C0CC1
 
+#include "configmanager.h"
 #include "networkmessage.h"
 #include "connection.h"
 #include "tools.h"
+
+extern ConfigManager g_config;
 
 class Protocol;
 
@@ -43,8 +46,11 @@ class OutputMessage : public NetworkMessage
 			add_header(info.length);
 		}
 
-		void addCryptoHeader(bool addChecksum) {
-			if (addChecksum) {
+		void addHeaderCheck(bool addChecksum, uint32_t &currentSequenceNumber) {
+			if(g_config.getBoolean(ConfigManager::SEQUENCE_NUMBER)){
+				add_header(currentSequenceNumber++);
+			}
+			else if (addChecksum) {
 				add_header(adlerChecksum(buffer + outputBufferStart, info.length));
 			}
 

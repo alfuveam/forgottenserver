@@ -34,8 +34,13 @@ class Protocol : public std::enable_shared_from_this<Protocol>
 		Protocol& operator=(const Protocol&) = delete;
 
 		virtual void parsePacket(NetworkMessage&) {}
+		uint32_t& getCurrentSequenceNumber() {
+			if (auto connection = getConnection()) {
+				return connection->getCurrentSequenceNumber();
+			}
+		};
 
-		virtual void onSendMessage(const OutputMessage_ptr& msg) const;
+		virtual void onSendMessage(const OutputMessage_ptr& msg);
 		void onRecvMessage(NetworkMessage& msg);
 		virtual void onRecvFirstMessage(NetworkMessage& msg) = 0;
 		virtual void onConnect() {}
@@ -99,7 +104,7 @@ class Protocol : public std::enable_shared_from_this<Protocol>
 		xtea::key key;
 		bool encryptionEnabled = false;
 		bool checksumEnabled = true;
-		bool rawMessages = false;
+		bool rawMessages = false;		
 };
 
 #endif

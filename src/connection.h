@@ -90,10 +90,15 @@ class Connection : public std::enable_shared_from_this<Connection>
 		void accept();
 
 		void send(const OutputMessage_ptr& msg);
-
+		
 		uint32_t getIP();
 
+		uint32_t& getCurrentSequenceNumber() {
+			return sequenceNumber;
+		}
+
 	private:
+
 		void parseHeader(const boost::system::error_code& error);
 		void parsePacket(const boost::system::error_code& error);
 
@@ -128,6 +133,7 @@ class Connection : public std::enable_shared_from_this<Connection>
 
 		bool connectionState = CONNECTION_STATE_OPEN;
 		bool receivedFirst = false;
+		uint32_t sequenceNumber = 0;
 };
 
 #endif

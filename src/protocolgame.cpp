@@ -351,9 +351,9 @@ void ProtocolGame::onConnect()
 	static std::ranlux24 generator(rd());
 	static std::uniform_int_distribution<uint16_t> randNumber(0x00, 0xFF);
 
-	// Skip checksum
+	// Skip check number
 	output->skipBytes(sizeof(uint32_t));
-
+		
 	// Packet length & type
 	output->add<uint16_t>(0x0006);
 	output->addByte(0x1F);
@@ -365,10 +365,13 @@ void ProtocolGame::onConnect()
 	challengeRandom = randNumber(generator);
 	output->addByte(challengeRandom);
 
-	// Go back and write checksum
+	// Go back and write checknumber
 	output->skipBytes(-12);
-	output->add<uint32_t>(adlerChecksum(output->getOutputBuffer() + sizeof(uint32_t), 8));
-
+	if(g_config.getBoolean(ConfigManager::SEQUENCE_NUMBER)) {		
+		output->add<uint32_t>(getCurrentSequenceNumber());
+	} else {
+		output->add<uint32_t>(adlerChecksum(output->getOutputBuffer() + sizeof(uint32_t), 8));
+	}
 	send(output);
 }
 
