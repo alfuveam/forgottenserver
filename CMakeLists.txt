@@ -39,7 +39,6 @@ if (CryptoPP_FOUND)  # vcpkg-provided cmake package called CryptoPP
 else()
     find_package(Crypto++ REQUIRED)
 endif ()
-find_package(MySQL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PugiXML REQUIRED)
 
@@ -60,9 +59,39 @@ else ()
     find_package(Lua REQUIRED)
 endif ()
 
+option(__ALLDB__ "Use All_db" ON)
+
+if(__ALLDB__ OR __MYSQL__)
+	add_definitions(-D__MYSQL__)
+	find_package(MySQL REQUIRED)	
+	include_directories(${MYSQL_INCLUDE_DIR})
+	target_link_libraries(tfs PRIVATE ${MYSQL_CLIENT_LIBS})
+endif()
+
+if(__ALLDB__ OR __PGSQL__)	
+	add_definitions(-D__PGSQL__)
+	find_package(PostgreSQL REQUIRED)
+	include_directories(${POSTGRESQL_INCLUDE_DIR})
+	target_link_libraries(tfs PRIVATE ${POSTGRESQL_LIBRARIES})	
+endif()
+
+if(__ALLDB__ OR __SQLITE__)	
+	add_definitions(-D__SQLITE__)
+	find_package(SQLite REQUIRED)
+	include_directories(${SQLite_INCLUDE_DIR})
+	target_link_libraries(tfs PRIVATE ${SQLite_LIBRARIES})	
+endif()
+
+if(__ALLDB__ OR __ODBC__)	
+	add_definitions(-D__ODBC__)
+	find_package(ODBC REQUIRED)
+	include_directories(${ODBC_INCLUDE_DIR})
+	target_link_libraries(tfs PRIVATE ${ODBC_LIBRARIES})	
+endif()
+
 find_package(Boost 1.53.0 REQUIRED COMPONENTS date_time system filesystem iostreams)
 
-include_directories(${Boost_INCLUDE_DIRS} ${Crypto++_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${MYSQL_INCLUDE_DIR} ${PUGIXML_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS} ${Crypto++_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${PUGIXML_INCLUDE_DIR})
 target_link_libraries(tfs PRIVATE
         Boost::date_time
         Boost::system
@@ -70,8 +99,7 @@ target_link_libraries(tfs PRIVATE
         Boost::iostreams
         ${CMAKE_THREAD_LIBS_INIT}
         ${Crypto++_LIBRARIES}
-        ${LUA_LIBRARIES}
-        ${MYSQL_CLIENT_LIBS}
+        ${LUA_LIBRARIES} 
         ${PUGIXML_LIBRARIES}
         )
 

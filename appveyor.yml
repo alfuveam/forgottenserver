@@ -29,6 +29,9 @@ install:
   - cmd : vcpkg install luajit:x64-windows
   - cmd : vcpkg install libmariadb:x64-windows
   - cmd : vcpkg install pugixml:x64-windows
+  - cmd : vcpkg install sqlite3:x64-windows
+  - cmd : vcpkg install libpq:x64-windows
+  - cmd : vcpkg install odbc:x64-windows
 
 build:
   parallel: true

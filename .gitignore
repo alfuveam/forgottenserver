@@ -180,4 +180,8 @@ pip-log.txt
 ## TFS / OT
 #############
 config.lua
+<<<<<<< HEAD
 tfs
+=======
+forgottenserver.s3db
+>>>>>>> 94201c4a1977d268b4c595daf68d955072ef429a

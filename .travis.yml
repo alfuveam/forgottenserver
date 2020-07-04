@@ -25,6 +25,9 @@ addons:
       - libluajit-5.1-dev
       - libmysqlclient-dev
       - libpugixml-dev
+      - libpq-dev
+      - libsqlite3-dev
+      - libunixodbc-dev
   coverity_scan:
     project:
       name: otland/forgottenserver
